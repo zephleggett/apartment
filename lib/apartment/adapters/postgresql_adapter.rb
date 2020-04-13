@@ -35,13 +35,13 @@ module Apartment
       #   @return {String} default schema search path
       #
       def reset
-        Thread.current[:tenant] = default_tenant
+        RequestStore.store[:tenant] = default_tenant
         Apartment.connection.schema_search_path = full_search_path
       end
 
       def current
-        # puts "Current PostgreSQL Tenant #{Thread.current[:tenant]}"
-        Thread.current[:tenant]
+        # puts "Current PostgreSQL Tenant #{RequestStore.store[:tenant]}"
+        RequestStore.store[:tenant]
       end
 
       protected
@@ -68,7 +68,7 @@ module Apartment
 
         # rubocop:enable Style/RaiseArgs
 
-        Thread.current[:tenant] = tenant.to_s
+        RequestStore.store[:tenant] = tenant.to_s
         Apartment.connection.schema_search_path = full_search_path
 
         # When the PostgreSQL version is < 9.3,
@@ -92,7 +92,7 @@ module Apartment
       end
 
       def persistent_schemas
-        [Thread.current[:tenant], Apartment.persistent_schemas].flatten
+        [RequestStore.store[:tenant], Apartment.persistent_schemas].flatten
       end
 
       def postgresql_version

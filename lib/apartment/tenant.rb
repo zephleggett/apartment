@@ -26,7 +26,7 @@ module Apartment
     #   @return {subclass of Apartment::AbstractAdapter}
     #
     def adapter
-      Thread.current[:apartment_adapter] ||= begin
+      RequestStore.store[:apartment_adapter] ||= begin
         adapter_method = "#{config[:adapter]}_adapter"
 
         if defined?(JRUBY_VERSION)
@@ -52,7 +52,7 @@ module Apartment
     #   Reset config and adapter so they are regenerated
     #
     def reload!(config = nil)
-      Thread.current[:apartment_adapter] = nil
+      RequestStore.store[:apartment_adapter] = nil
       @config = config
     end
 
