@@ -103,7 +103,7 @@ module Apartment
       #   Establish a new connection for each specific excluded model
       #
       def process_excluded_models
-        # All other models will shared a connection (at Apartment.connection_class)
+        # All other models will share a connection (at Apartment.connection_class)
         # and we can modify at will
         Apartment.excluded_models.each do |excluded_model|
           process_excluded_model(excluded_model)

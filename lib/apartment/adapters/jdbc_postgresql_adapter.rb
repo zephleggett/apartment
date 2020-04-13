@@ -41,8 +41,7 @@ module Apartment
         raise ActiveRecord::StatementInvalid.new("Could not find schema #{tenant}") unless Apartment.connection.all_schemas.include? tenant.to_s
 
         # rubocop:enable Style/RaiseArgs
-
-        @current = tenant.to_s
+        Thread.current[:tenant] = tenant.to_s
         Apartment.connection.schema_search_path = full_search_path
       rescue ActiveRecord::StatementInvalid, ActiveRecord::JDBCError
         raise TenantNotFound, "One of the following schema(s) is invalid: #{full_search_path}"
