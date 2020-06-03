@@ -615,3 +615,9 @@ If you face problems running bundle install in OSX, try installing the gem runni
 ## License
 
 Apartment is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
+[![All Contributors](https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square)](#contributors)
+
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
