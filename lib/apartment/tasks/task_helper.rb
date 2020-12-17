@@ -32,7 +32,7 @@ module Apartment
 
     def self.create_tenant(tenant_name)
       puts("Creating #{tenant_name} tenant")
-      Apartment::Tenant.create(tenant_name)
+      Apartment::Tenant.create(tenant_name, { ignore_if_exists: true })
     rescue Apartment::TenantExists => e
       puts "Tried to create already existing tenant: #{e}"
     end

@@ -23,7 +23,8 @@ module Apartment
         config[:url] = "#{config[:url].gsub(%r{(\S+)/.+$}, '\1')}/#{environmentify(tenant)}"
       end
 
-      def create_tenant_command(conn, tenant)
+      def create_tenant_command(conn, tenant, _ignore_if_exists)
+        # TODO: check which error create_database would raise or pre check if tenant already exists
         conn.create_database(environmentify(tenant), thisisahack: '')
       end
 

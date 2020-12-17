@@ -159,15 +159,16 @@ module Apartment
       #
       #   @param {String} tenant Database name
       #
-      def create_tenant(tenant)
+      def create_tenant(tenant, ignore_if_exists: false)
         with_neutral_connection(tenant) do |conn|
-          create_tenant_command(conn, tenant)
+          create_tenant_command(conn, tenant, ignore_if_exists)
         end
       rescue *rescuable_exceptions => e
         raise_create_tenant_error!(tenant, e)
       end
 
-      def create_tenant_command(conn, tenant)
+      def create_tenant_command(conn, tenant, _ignore_if_exists)
+        # TODO: check which error create_database would raise or pre check if tenant already exists
         conn.create_database(environmentify(tenant), @config)
       end
 

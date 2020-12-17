@@ -96,13 +96,19 @@ module Apartment
         Apartment.connection.schema_exists?(tenant)
       end
 
-      def create_tenant_command(conn, tenant)
+      def create_tenant_command(conn, tenant, ignore_if_exists)
         # NOTE: This was causing some tests to fail because of the database strategy for rspec
+        create_schema_statement = if ignore_if_exists
+                                    "CREATE SCHEMA IF NOT EXISTS \"#{tenant}\""
+                                  else
+                                    "CREATE SCHEMA \"#{tenant}\""
+                                  end
+
         if ActiveRecord::Base.connection.open_transactions.positive?
-          conn.execute(%(CREATE SCHEMA "#{tenant}"))
+          conn.execute(create_schema_statement)
         else
           schema = %(BEGIN;
-          CREATE SCHEMA "#{tenant}";
+          #{create_schema_statement};
           COMMIT;)
 
           conn.execute(schema)

@@ -43,8 +43,8 @@ module Apartment
         super database_file(tenant)
       end
 
-      def create_tenant(tenant)
-        if File.exist?(database_file(tenant))
+      def create_tenant(tenant, ignore_if_exists: false)
+        if File.exist?(database_file(tenant)) && !ignore_if_exists
           raise TenantExists,
                 "The tenant #{environmentify(tenant)} already exists."
         end
