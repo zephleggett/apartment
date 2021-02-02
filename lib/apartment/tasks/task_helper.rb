@@ -3,8 +3,10 @@
 module Apartment
   module TaskHelper
     def self.each_tenant(&block)
-      Parallel.each(tenants_without_default, in_threads: Apartment.parallel_migration_threads) do |tenant|
-        block.call(tenant)
+      run_with_advisory_lock do
+        Parallel.each(tenants_without_default, in_threads: Apartment.parallel_migration_threads) do |tenant|
+          block.call(tenant)
+        end
       end
     end
 
