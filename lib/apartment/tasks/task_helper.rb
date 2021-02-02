@@ -52,7 +52,10 @@ module Apartment
     end
 
     def self.run_with_advisory_lock
-      db_name_hash = Zlib.crc32(ActiveRecord::Base.connection.current_database) * 2_053_462_845
+      return unless ActiveRecord::Base.connection.supports_advisory_locks?
+      hash_input = ActiveRecord::Base.connection.current_database
+      hash_input += ActiveRecord::Base.connection.current_schema if ActiveRecord::Base.connection.respond_to?(:current_schema)
+      db_name_hash = Zlib.crc32(hash_input) * 2_053_462_845
       obtained_lock = ActiveRecord::Base.connection.select_value("select pg_try_advisory_lock(#{db_name_hash});")
       if obtained_lock
         begin
