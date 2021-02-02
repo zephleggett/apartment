@@ -52,19 +52,28 @@ module Apartment
     end
 
     def self.run_with_advisory_lock
+      # Only use advisory_lock if db adapter supports
       return unless ActiveRecord::Base.connection.supports_advisory_locks?
+
+      # Disable advisory_locks for active record and establish a new connection
+      con = Rails.configuration.database_configuration[Rails.env.to_s]
+      ActiveRecord::Base.establish_connection(con.merge('advisory_locks' => false))
+
+      # Generate a lock_id borrowing from the ActiveRecord Implemention
       hash_input = ActiveRecord::Base.connection.current_database
       hash_input += ActiveRecord::Base.connection.current_schema if ActiveRecord::Base.connection.respond_to?(:current_schema)
       db_name_hash = Zlib.crc32(hash_input) * 2_053_462_845
+
+      # Obtain advisory_lock
       obtained_lock = ActiveRecord::Base.connection.select_value("select pg_try_advisory_lock(#{db_name_hash});")
-      if obtained_lock
-        begin
-          yield
-        ensure
-          ActiveRecord::Base.connection.execute("select pg_advisory_unlock(#{db_name_hash});")
-        end
-      else
-        raise ActiveRecord::ConcurrentMigrationError
+      raise ActiveRecord::ConcurrentMigrationError unless obtained_lock
+
+      begin
+        yield
+      ensure
+        # Remove advisory_lock and reset ActiveRecord connection
+        ActiveRecord::Base.connection.execute("select pg_advisory_unlock(#{db_name_hash});")
+        ActiveRecord::Base.establish_connection(con)
       end
     end
   end
