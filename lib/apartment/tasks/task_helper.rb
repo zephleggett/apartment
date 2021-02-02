@@ -54,12 +54,15 @@ module Apartment
     def self.run_with_advisory_lock
       db_name_hash = Zlib.crc32(ActiveRecord::Base.connection.current_database) * 2_053_462_845
       obtained_lock = ActiveRecord::Base.connection.select_value("select pg_try_advisory_lock(#{db_name_hash});")
-      begin
-        yield
-      ensure
-        ActiveRecord::Base.connection.execute("select pg_advisory_unlock(#{db_name_hash});")
+      if obtained_lock
+        begin
+          yield
+        ensure
+          ActiveRecord::Base.connection.execute("select pg_advisory_unlock(#{db_name_hash});")
+        end
+      else
+        raise ActiveRecord::ConcurrentMigrationError
       end
     end
-
   end
 end
