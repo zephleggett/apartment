@@ -15,7 +15,6 @@ end
 if ActiveRecord.version.release >= Gem::Version.new('6.1')
   require_relative 'apartment/active_record/schema_migration'
   require_relative 'apartment/active_record/internal_metadata'
-  require_relative 'apartment/active_record/migrator'
 end
 
 # Apartment main definitions

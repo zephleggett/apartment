@@ -144,10 +144,30 @@ module Apartment
         end
       end
 
+      def disable_advisory_locks
+        # Disable advisory_locks for active record and establish a new connection
+        conn = Apartment.connection_config
+        return false unless Apartment.establish_connection(conn.merge(advisory_locks: false))
+      end
+
+      def execute_within_one_advisory_lock
+        # Disable advisory_locks for connection_config and establish a new connection
+        disable_advisory_locks
+        # Generate a lock_id and apply lock to the database
+        advisory_lock_id = obtain_advisory_lock_id
+        obtain_advisory_lock(advisory_lock_id)
+
+        yield
+      ensure
+        # Remove advisory_lock and reset ActiveRecord connection
+        release_advisory_lock(advisory_lock_id)
+        reset
+      end
+
       protected
 
       def process_excluded_model(excluded_model)
-        excluded_model.constantize.establish_connection @config
+        excluded_model.constantize.establish_connection(@config)
       end
 
       def drop_command(conn, tenant)
@@ -250,6 +270,23 @@ module Apartment
         else
           yield(Apartment.connection)
         end
+      end
+
+      def obtain_advisory_lock_id
+        # Generate a lock_id borrowing from the ActiveRecord Implemention
+        hash_input = Apartment.connection.current_database
+        hash_input += Apartment.connection.current_schema if ActiveRecord::Base.connection.respond_to?(:current_schema)
+        db_name_hash = Zlib.crc32(hash_input) * 2_053_462_845
+      end
+
+      def obtain_advisory_lock(lock_id)
+        obtained_lock = Apartment.connection.get_advisory_lock(lock_id)
+        # Obtain advisory_lock
+        raise ActiveRecord::ConcurrentMigrationError unless obtained_lock
+      end
+
+      def release_advisory_lock(lock_id)
+        Apartment.connection.release_advisory_lock(lock_id)
       end
 
       def reset_on_connection_exception?
